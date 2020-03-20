@@ -5,18 +5,29 @@ agent:
     type: e1-standard-2
     os_image: ubuntu1804
 blocks:
-  - name: Test
+  - name: Bundle
     task:
       env_vars:
         - name: RAILS_ENV
           value: test
       jobs:
-        - name: Test
+        - name: Install
           commands:
             - checkout
             - sem-version ruby 2.7.0
             - cache restore
             - bundle install --deployment --path vendor/bundle
             - cache store
-            - 'bundle exec rake db:setup'
+  - name: Test
+    task:
+      prologue:
+        commands:
+          - checkout
+          - sem-version ruby 2.7.0
+          - cache restore
+          - bundle install --deployment --path vendor/bundle
+          - 'bundle exec rake db:setup'
+      jobs:
+        - name: RSpec
+          commands:
             - bundle exec rspec
